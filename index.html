@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset=utf-8>
+		<title>Polar expedition</title>
+		<style>
+			body { margin-left: 25%; margin-top: 10%; }
+			canvas { width: 100%; height: 100%; }
+		</style>
+	</head>
+	<body>
+<script>
+function refreshPage(){
+    window.location.reload();
+} 
+</script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/phaser-ce/2.13.2/phaser.min.js"></script>
+		<script>
+		
+	var MatrixA= new Array();
+	
+	for(var i=0;i<500;i++){
+	MatrixA[i]= new Array();	
+	for(var j=0;j<100;j++)
+	{	
+		var ran = Math.random()*2;
+		if(j == 3 && ran > 0.7 ){
+		MatrixA[i][j]=1	
+		}else if(j == 2 && ran > 0.3){
+		MatrixA[i][j]=2	
+		}
+		else{
+		MatrixA[i][j]=0
+		}
+	}		
+}
+
+
+var game = new Phaser.Game(800, 600, Phaser.CANVAS, 'phaser-example', { preload: preload, create: create, update: update, collisionHandler: collisionHandler});
+
+function preload() {
+
+	game.load.image('background', 'imgs/fondo.jpg');
+	game.load.spritesheet('snow', 'imgs/snow.png', 800, 600);
+	game.load.image('won', 'imgs/win.png');
+	game.load.image('lost', 'imgs/lost.png');
+	game.load.audio('bad', 'sounds/bad.mp3');
+	game.load.audio('point', 'sounds/coin.mp3');
+	game.load.audio('walk', 'sounds/walk.mp3');
+	game.load.audio('water', 'sounds/water.mp3');
+	game.load.audio('blin', 'sounds/blin.mp3');
+	game.load.audio('music', 'sounds/music.mp3');
+	game.load.audio('shoot', 'sounds/shoot.mp3');
+	game.load.audio('crambs', 'sounds/crambs.mp3');
+	game.load.tilemap('map', 'tiled/tilemapsito.csv', null, Phaser.Tilemap.CSV);
+    game.load.image('tiles', 'tiled/tile_map.png');
+	game.load.spritesheet('player', 'sprites/sprite.png', 67, 102);
+    game.load.spritesheet('enemy', 'sprites/spriteenemy.png', 66, 116);
+    game.load.spritesheet('bullet', 'sprites/pico.png', 45.5, 39);
+	game.load.image('bar100', 'barras/bar100.png');
+	game.load.image('bar90', 'barras/bar90.png');
+	game.load.image('bar80', 'barras/bar80.png');
+	game.load.image('bar70', 'barras/bar70.png');
+	game.load.image('bar60', 'barras/bar60.png');
+	game.load.image('bar50', 'barras/bar50.png');
+	game.load.image('bar40', 'barras/bar40.png');
+	game.load.image('bar30', 'barras/bar30.png');
+	game.load.image('bar20', 'barras/bar20.png');
+	game.load.image('bar10', 'barras/bar10.png');
+	game.load.image('bar0', 'barras/bar0.png');
+    game.load.image('iceberg', 'imgs/iceberg.png');
+    game.load.image('floor', 'imgs/water-pic.png');
+    game.load.image('floor2', 'imgs/water.png');
+	game.load.image('icicle', 'imgs/caram.png');
+	game.load.spritesheet('coin', 'sprites/coin.png', 42.5, 42);
+	game.load.image('pingu', 'imgs/pinguu.png');
+	game.load.image('pingu2', 'imgs/pingu.png');
+	game.load.image('heart3', 'sprites/lifes3.png');
+	game.load.image('heart2', 'sprites/lifes2.png');
+	game.load.image('heart1', 'sprites/lifes1.png');
+	game.load.image('full', 'imgs/full.png');
+	game.load.image('info', 'imgs/info.png');
+	game.load.image('menu', 'menu.png');
+
+}
+
+var win;
+var lost;
+var map;
+var bad;
+var walk;
+var point;
+var water;
+var blin;
+var shoot;
+var crambs;
+var music;
+var layer;
+var snow;
+var player;
+var bar;
+var bar9;
+var bar8;
+var bar7;
+var bar6;
+var bar5;
+var bar4;
+var bar3;
+var bar2;
+var bar1;
+var bar0;
+var life = 100;
+var lifes = 3;
+var heart3;
+var heart2;
+var heart1;
+var facing;
+var cursors;
+var jumpButton;
+var plat;
+var platforms2;
+var floor;
+var floor2;
+var roof;
+var roof2;
+var roof3;
+var bullet;
+var bullets = 20;
+var bulletTime = 0;
+var enemy;
+var count = 0;
+var coins;
+var pingu;
+var pingu2;
+var pingu3;
+var pingu4;
+var pingu5;
+var pingu6;
+var full;
+var info;
+var menu;
+var t;
+
+
+
+function create() {
+
+game.scale.fullScreenScaleMode = Phaser.ScaleManager.EXACT_FIT;
+
+	game.add.tileSprite(0, 0, 300000, 600, 'background');
+    game.world.setBounds(0, 0, 300000, 600);
+	
+	
+		snow = game.add.tileSprite(0, 
+        this.game.height - this.game.cache.getImage('snow').height, 
+        this.game.width,
+        this.game.cache.getImage('snow').height, 
+        'snow');
+	snow.animations.add('sn', [0, 1], 2, true);
+	snow.fixedToCamera = true;
+	
+		
+	map = game.add.tilemap('map', 47, 47);
+    map.addTilesetImage('tiles');
+	map.addTilesetImage('coin');
+	
+	map.setCollisionBetween(0, 15);
+	
+	map.setTileIndexCallback(1, hitCoin, this);
+    map.setTileLocationCallback(0, 0, 1, 1, hitCoin, this);
+    
+    layer = map.createLayer(0);
+
+    layer.resizeWorld();
+
+
+///////////////////SpritesGame////////////////////////
+
+		
+		
+        player = game.add.sprite(200, 100, 'player');
+		player.scale.x = 0.9;
+		player.scale.y = 0.9;
+		heart3 = game.add.sprite(600, 60, 'heart3');
+		heart2 = game.add.sprite(600, 60, 'heart2');
+		heart1 = game.add.sprite(600, 60, 'heart1');
+		heart3.scale.x = 1.8;
+		heart2.scale.x = 1.8;
+		heart1.scale.x = 1.8;
+		heart3.scale.y = 1.8;
+		heart2.scale.y = 1.8;
+		heart1.scale.y = 1.8;
+		heart3.visible = true;
+		heart2.visible = false;
+		heart1.visible = false;
+		heart3.fixedToCamera = true;
+		heart2.fixedToCamera = true;
+		heart1.fixedToCamera = true;
+		
+		player.animations.add('throwrg', [21, 22, 23, 24, 25], 10, true);
+		player.animations.add('throwlf', [26, 27, 28, 29, 30], 10, true);
+		player.animations.add('right', [0, 1, 2, 3, 4, 5, 6], 10, true);
+		player.animations.add('left', [7, 8, 9, 10, 11, 12, 13], 10, true);
+		player.animations.add('iddlerg', [16, 17], 10, true);
+		player.animations.add('iddlelf', [19, 20], 10, true);
+		pingu = game.add.sprite(3080, 220, 'pingu');
+		pingu2 = game.add.sprite(3080, 220, 'pingu2');
+		pingu2.visible = false;
+		pingu3 = game.add.sprite(14000, 220, 'pingu');
+		pingu4 = game.add.sprite(14000, 220, 'pingu2');
+		pingu4.visible = false;
+		pingu5 = game.add.sprite(32330, 220, 'pingu');
+		pingu6 = game.add.sprite(32330, 220, 'pingu2');
+		pingu6.visible = false;
+		
+		
+		bad = game.add.audio('bad');
+		point = game.add.audio('point');
+		walk = game.add.audio('walk');
+		water = game.add.audio('water');
+		blin = game.add.audio('blin');
+		music = game.add.audio('music');
+		shoot = game.add.audio('shoot');
+		crambs = game.add.audio('crambs');
+		
+
+/////////////////////Limits&Phisics/////////////////////
+
+		game.physics.arcade.enable(player);
+		player.body.collideWorldBounds = true;
+		player.body.gravity.y = 590;
+
+		plat = game.add.physicsGroup();
+		floor = game.add.physicsGroup();
+		enemy = game.add.group();
+		enemy.enableBody = true;
+		coins = game.add.group();
+		coins.enableBody = true;
+		bullets = game.add.group();
+		bullets.enableBody = true;
+		
+////////////////////////////Text////////////////////////////
+
+	text = game.add.text(50, 50, '', { font: "25pt Courier", fill: '#ffffff' });
+	text.stroke = '#cccccc';
+    text.strokeThickness = 3;
+	text.fixedToCamera = true;
+	
+////////////////////Platforms///////////////////////////
+
+	for(var i=0;i<150;i++){
+	for(var j=0;j<150;j++){
+		if(MatrixA[i][j] == 1)
+				{
+			plat.create(i*120 , 500, 'iceberg');
+				}
+			}
+		}
+    plat.setAll('body.immovable', false);
+	
+	///////////////////////////////////////
+	
+		roof = game.add.physicsGroup();
+		roof2 = game.add.physicsGroup();
+		roof3 = game.add.physicsGroup();
+			
+	for (var i=0; i<15; i++) 
+		{
+		var c = roof.create(1000+i*123, Math.random()*30, 'icicle');
+		c.checkWorldBounds = false;
+		var d = roof2.create(13000+i*123, Math.random()*30, 'icicle');
+		d.checkWorldBounds = false;
+		var e = roof3.create(28000+i*123, Math.random()*30, 'icicle');
+		e.checkWorldBounds = false;
+		}
+	roof.setAll('body.immovable', true);
+	roof2.setAll('body.immovable', true);
+	roof3.setAll('body.immovable', true);
+	
+	////////////////////////////////////////
+	
+	for (var i=0; i<300; i++) {
+		floor.create(i*62, 520, 'floor');
+		floor.scale.x = 2.5;
+	}
+		floor.setAll('body.immovable', true);
+	
+	
+	floor2 = game.add.physicsGroup();
+			
+	for (var i=0; i<300; i++) {
+		floor2.create(-30+i*128, 540, 'floor2');
+	}
+	floor2.setAll('body.immovable', false);
+	
+	
+	
+	////////////////////////////////////////
+	
+	for (var i=0; i<120; i++)
+	{
+	var snows = enemy.create(1000+i*8000*Math.random(), 180, 'enemy');
+		snows.body.gravity.y = 300;
+	}
+	enemy.callAll('animations.add', 'animations', 'spin', [0, 1, 2, 3, 4, 5, 6, 7], 6, true);
+    enemy.callAll('animations.play', 'animations', 'spin');
+	enemy.setAll('body.immovable', true);
+	
+/////////////////////////BulletsPhisics/////////////////////////
+
+    bullets.physicsBodyType = Phaser.Physics.ARCADE;
+
+    for (var i = 0; i < 60; i++)
+    {
+        var b = bullets.create(0, 0, 'bullet');
+        b.name = 'bullet' + 1;
+        b.exists = false;
+        b.visible = false;
+        b.checkWorldBounds = true;
+        b.events.onOutOfBounds.add(resetBullet, this);
+    }
+	bullets.callAll('animations.add', 'animations', 'spin', [11, 10, 9, 8, 7, 6], 15, true);
+    bullets.callAll('animations.play', 'animations', 'spin');
+	
+	
+	
+	for (var i = 0; i < 500; i++)
+    {
+    var coin = coins.create(400+i*500 , 240, 'coin');
+		coin.body.gravity.y = 200;
+		coin.body.bounce.set(0.9);
+    }
+	coins.callAll('animations.add', 'animations', 'spin', [0, 1, 2, 3, 4, 5], 10, true);
+    coins.callAll('animations.play', 'animations', 'spin');
+	coins.setAll('body.immovable', true);
+	
+	
+	
+	
+		bar = game.add.sprite(25, 20, 'bar100');
+		bar9 = game.add.sprite(25, 20, 'bar90');
+		bar8 = game.add.sprite(25, 20, 'bar80');
+		bar7 = game.add.sprite(25, 20, 'bar70');
+		bar6 = game.add.sprite(25, 20, 'bar60');
+		bar5 = game.add.sprite(25, 20, 'bar50');
+		bar4 = game.add.sprite(25, 20, 'bar40');
+		bar3 = game.add.sprite(25, 20, 'bar30');
+		bar2 = game.add.sprite(25, 20, 'bar20');
+		bar1 = game.add.sprite(25, 20, 'bar10');
+		bar0 = game.add.sprite(25, 20, 'bar0');
+		bar.scale.y = 0.6;
+		bar9.scale.y = 0.6;
+		bar8.scale.y = 0.6;
+		bar7.scale.y = 0.6;
+		bar6.scale.y = 0.6;
+		bar5.scale.y = 0.6;
+		bar4.scale.y = 0.6;
+		bar3.scale.y = 0.6;
+		bar2.scale.y = 0.6;
+		bar1.scale.y = 0.6;
+		bar0.scale.y = 0.6;
+		bar.fixedToCamera = true;
+		bar9.fixedToCamera = true;
+		bar8.fixedToCamera = true;
+		bar7.fixedToCamera = true;
+		bar6.fixedToCamera = true;
+		bar5.fixedToCamera = true;
+		bar4.fixedToCamera = true;
+		bar3.fixedToCamera = true;
+		bar2.fixedToCamera = true;
+		bar1.fixedToCamera = true;
+		bar0.fixedToCamera = true;
+		bar.visible = false;
+		bar9.visible = false;
+		bar8.visible = false;
+		bar7.visible = false;
+		bar6.visible = false;
+		bar5.visible = false;
+		bar4.visible = false;
+		bar3.visible = false;
+		bar2.visible = false;
+		bar1.visible = false;
+		bar0.visible = false;
+	
+//////////////////////////Camera&Controls///////////////////////////
+
+	
+	win = game.add.sprite(0, 0, 'won');
+	win.visible = false;
+	win.fixedToCamera = true;
+	win.events.onInputDown.add(refreshPage, this)
+	win.inputEnabled = true;
+	
+	lost = game.add.sprite(0, 0, 'lost');
+	lost.visible = false;
+	lost.fixedToCamera = true;
+	lost.events.onInputDown.add(refreshPage, this)
+	lost.inputEnabled = true;
+
+
+	full = game.add.sprite(720, 520, 'full');
+	full.fixedToCamera = true;
+	full.scale.x = 0.4;
+	full.scale.y = 0.4;
+	
+	full.events.onInputDown.add(gofull, this)
+	full.inputEnabled = true;
+	
+	info = game.add.sprite(620, 510, 'info');
+	info.fixedToCamera = true;
+	info.scale.x = 0.5;
+	info.scale.y = 0.5;
+	
+	info.events.onInputDown.add(menu, this)
+	info.events.onInputUp.add(menu2, this)
+	info.inputEnabled = true;
+	
+	menu = game.add.sprite(100, 100, 'menu');
+	menu.fixedToCamera = true;
+	menu.visible = false;
+	
+    game.camera.follow(player, Phaser.Camera.FOLLOW_LOCKON, 0.1, 0.1);
+    cursors = game.input.keyboard.createCursorKeys();
+    jumpButton = game.input.keyboard.addKey(Phaser.Keyboard.UP);
+	
+	game.time.events.loop(Phaser.Timer.SECOND, injured, this);
+	
+	music.play();
+	music.loopFull(0.6);
+	
+}
+
+function hitCoin(sprite, tile) {
+    tile.alpha = 0.2;
+    layer.dirty = true;
+	count2();
+    return false;	
+}
+
+
+function menu(){
+	game.paused = true;
+	menu.visible = true;
+}
+
+function menu2(){
+	game.paused = false;
+	menu.visible = false;
+}
+
+function gofull() {
+    if (game.scale.isFullScreen)
+    {
+        game.scale.stopFullScreen();
+    }
+    else{
+        game.scale.startFullScreen(false);
+    }
+}
+
+function update () {
+t++;
+
+////////////////////////Collisions//////////////////////////////
+	snow.animations.play('sn', 1, true);
+	snow.tilePosition.y += 0.4;
+
+	game.physics.arcade.collide(player, layer);
+	game.physics.arcade.overlap(bullets, enemy, collisionHandler, null, this);
+	game.physics.arcade.overlap(player, enemy, collisionHandler2, null, this);
+	game.physics.arcade.overlap(player, roof, collisionHandler3, null, this);
+	game.physics.arcade.overlap(player, roof2, collisionHandler3b, null, this);
+	game.physics.arcade.overlap(player, roof3, collisionHandler3c, null, this);
+	game.physics.arcade.overlap(player, coins, collisionHandler4, null, this);
+	game.physics.arcade.overlap(player, floor, collisionHandler5, null, this);
+    game.physics.arcade.collide(player, plat);   
+	game.physics.arcade.collide(enemy, layer);
+	game.physics.arcade.collide(coins, layer);
+	
+
+    player.body.velocity.x = 0;
+	
+/////////////////////////////////IF////////////////////////////
+	var dx=(player.position.x-pingu.position.x)*(player.position.x-pingu.position.x);
+	var dy=(player.position.y-pingu.position.y)*(player.position.y-pingu.position.y);
+	var d = Math.sqrt(dx+dy);
+		if(d <= 200)
+	{
+	pingu.visible = false;
+	pingu2.visible = true;
+	if(player.position.x >= 3040 && player.position.x <= 3060)
+	{blin.play();}
+	}
+	var ex=(player.position.x-pingu3.position.x)*(player.position.x-pingu3.position.x);
+	var ey=(player.position.y-pingu3.position.y)*(player.position.y-pingu3.position.y);
+	var e = Math.sqrt(ex+ey);
+		if(e <= 180)
+	{
+	pingu3.visible = false;
+	pingu4.visible = true;
+	if(player.position.x >= 13960 && player.position.x <= 13980)
+	{blin.play();}
+	}
+	var fx=(player.position.x-pingu5.position.x)*(player.position.x-pingu5.position.x);
+	var fy=(player.position.y-pingu5.position.y)*(player.position.y-pingu5.position.y);
+	var f = Math.sqrt(fx+fy);
+		if(f <= 150)
+	{
+	pingu5.visible = false;
+	pingu6.visible = true;
+	win.visible = true;
+	}
+	
+    if (cursors.left.isDown)
+    {	
+    player.body.velocity.x = -300;
+		if(facing != 'left')
+		{
+		player.animations.play('left', 8, true);
+		walk.play();
+		facing = 'left';
+		}
+    }
+    else if (cursors.right.isDown)
+    {
+    player.body.velocity.x = 320;
+		if(facing != 'right')
+		{
+		player.animations.play('right', 8, true);
+		walk.play();
+		facing = 'right';
+		}
+    }
+	else
+	{
+		if(facing != 'iddle')
+		{
+			if(facing != 'left')
+			{
+			player.animations.play('iddlerg', 4, true);
+			}
+			else if(facing != 'right')
+			{
+			player.animations.play('iddlelf', 4, true);
+			}
+		facing = 'iddle';
+		}
+	}
+	
+////////////////////JumpButton/////////////////////////
+    if (jumpButton.isDown && (player.body.onFloor() || player.body.touching.down))
+    {
+        player.body.velocity.y = -450;
+    }
+	
+
+
+/////////////////////FireButton/////////////////////
+    if (game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR))
+    {
+	shoot.play();
+	shoot.duration=0.5;
+	shoot.volume = 0.2;
+		if(facing != 'left')
+			{
+			player.animations.play('throwrg', 20, false);
+			}
+		else if(facing != 'right')
+			{
+			player.animations.play('throwlf', 20, false);
+			}
+			
+        fireBullet();
+    }
+	
+	
+	if(player.position.x >= 900)
+	{
+	if(player.position.x <= 1000)
+	{crambs.play();}
+	roof.position.y += 0.15;
+	}
+	if(player.position.x >= 12900)
+	{
+	if(player.position.x <= 13000)
+	{crambs.play();}
+	roof2.position.y += 0.2;
+	}
+	if(player.position.x >= 27900)
+	{
+	if(player.position.x <= 28000)
+	{crambs.play();}
+	roof3.position.y += 0.25;
+	}
+	
+	if(life == 100){bar.visible = true}
+	else{bar.visible = false}
+	if(life >= 90 && life < 100){bar9.visible = true}
+	else{bar9.visible = false}
+	if(life >= 80 && life < 90){bar8.visible = true}
+	else{bar8.visible = false}
+	if(life >= 70 && life < 80){bar7.visible = true}
+	else{bar7.visible = false}
+	if(life >= 60 && life < 70){bar6.visible = true}
+	else{bar6.visible = false}
+	if(life >= 50 && life < 60){bar5.visible = true}
+	else{bar5.visible = false}
+	if(life >= 40 && life < 50){bar4.visible = true}
+	else{bar4.visible = false}
+	if(life >= 30 && life < 40){bar3.visible = true}
+	else{bar3.visible = false}
+	if(life >= 20 && life < 30){bar2.visible = true}
+	else{bar2.visible = false}
+	if(life >= 10 && life < 20){bar1.visible = true}
+	else{bar1.visible = false}
+	if(life < 10){bar0.visible = true}
+	else{bar0.visible = false}
+}
+
+function fireBullet () {
+
+
+    if (game.time.now > bulletTime)
+    {
+        bullet = bullets.getFirstExists(false);
+        if (bullet)
+        {
+            bullet.reset(player.x+40, player.y+15 );
+			if(facing != 'left')
+			{
+            bullet.body.velocity.x = 300;
+			}
+			else if(facing != 'right')
+			{
+			bullet.body.velocity.x = -400;
+			}
+            bulletTime = game.time.now + 400;
+        }
+    }
+}
+
+function resetBullet (bullet) {
+    bullet.kill();
+}
+
+
+////////////////////Collision//////////////////////
+
+
+function collisionHandler (bullet, enemy) {
+	bullet.kill();
+	enemy.kill();
+	contador();
+}
+
+function collisionHandler2 (player, enemy) {
+	injured();
+}
+
+function collisionHandler3 (player, roof) {
+	injured();
+}
+function collisionHandler3b (player, roof2) {
+	injured();
+}
+function collisionHandler3c (player, roof3) {
+	injured();
+}
+
+function collisionHandler4(player, coins){
+	point.play();
+	point.volume = 0.2;
+	contador();
+	coins.kill();
+}
+
+function collisionHandler5 (player, floor) {
+	water.play();
+	injured();
+}
+
+function count2(){
+	player.body.velocity.x += 10;
+}
+
+function contador () {
+    count ++;
+    text.text = "Score: " + count;
+	if(count >= 5){
+	count = 0;
+	if(life <= 50){
+	life = life + 50;
+	}
+	else{
+	life = 100;
+	}
+	}
+}
+
+function injured(){
+	game.time.totalElapsedSeconds();
+	life-=0.4;
+	if(life <= 0){
+		player.kill();
+	if(lifes == 3){
+		respawn();
+	}
+	else if(lifes == 2){
+		respawn2();
+	}
+	else{
+		lost.visible = true;
+	}
+	}
+}
+function respawn(){
+	heart3.visible = false;
+	heart2.visible = true;
+	bad.play();
+	life = 100;
+	lifes = 2;
+	player.position.x = 200;
+	player.position.y = 100;
+	player.revive();
+}
+function respawn2(){
+	heart2.visible = false;
+	heart1.visible = true;
+	bad.play();
+	life = 100;
+	lifes = 1;
+	player.position.x = 200;
+	player.position.y = 100;
+	player.revive();
+}
+
+
+		</script>
+	</body>
+</html>
